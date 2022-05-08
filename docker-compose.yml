@@ -1,0 +1,25 @@
+version: "3"
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - 16686:16686
+      - 14268
+      - 14250
+  otel:
+    image: otel/opentelemetry-collector
+    command: ["--config=otel-config.yaml"]
+    ports:
+      - 4317:4317
+    environment:
+      - JAEGER_ENDPOINT=jaeger:14250
+    volumes:
+      - ${PWD}/otel-config.yaml:/otel-config.yaml
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - RUST_LOG=debug
+    depends_on:
+      - otel
